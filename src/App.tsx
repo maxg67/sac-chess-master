@@ -22,25 +22,30 @@ import Footer from "./components/Footer";
 
 const queryClient = new QueryClient();
 
+// Loading component
+const LoadingComponent = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-chess-accent mx-auto mb-4"></div>
+      <p>Loading...</p>
+    </div>
+  </div>
+);
+
 // Protected route component
 const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, profile, loading } = useAuth();
   
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-chess-accent mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
+    return <LoadingComponent />;
   }
   
+  // Check if not authenticated
   if (!user) {
     return <Navigate to="/login" replace />;
   }
   
+  // Check if profile is loaded and role is appropriate
   if (profile && profile.role !== 'admin' && profile.role !== 'superadmin') {
     console.log("User role doesn't match admin, redirecting to player dashboard", profile);
     return <Navigate to="/dashboard" replace />;
@@ -53,16 +58,10 @@ const ProtectedPlayerRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, profile, loading } = useAuth();
   
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-chess-accent mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
+    return <LoadingComponent />;
   }
   
+  // Check if not authenticated
   if (!user) {
     return <Navigate to="/login" replace />;
   }

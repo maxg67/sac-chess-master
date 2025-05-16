@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // Changed from single() to maybeSingle() to prevent errors when no profile is found
       
       if (error) {
         console.error('Error fetching profile:', error);
@@ -121,8 +121,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Clean up auth state
+      // Clean up auth state before attempting to log in
       cleanupAuthState();
+      
+      // Try to sign out globally first
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        console.log('Signout before login failed, but we can proceed', err);
+      }
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -151,6 +158,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, name: string): Promise<boolean> => {
     try {
       setLoading(true);
+      
+      // Clean up auth state before attempting to sign up
+      cleanupAuthState();
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -188,7 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Clean up auth state
       cleanupAuthState();
       
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope: 'global' });
       
       toast.info('You have been logged out');
       
