@@ -17,7 +17,8 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       storage: localStorage,
-      detectSessionInUrl: false // Changed from true to false to prevent URL-based session detection issues
+      detectSessionInUrl: false,
+      flowType: 'implicit'
     }
   }
 );
