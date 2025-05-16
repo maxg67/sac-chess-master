@@ -43,7 +43,7 @@ const leaderboardData = [
 ];
 
 const PlayerDashboard = () => {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -70,7 +70,7 @@ const PlayerDashboard = () => {
       <div className="bg-chess-dark text-white py-8">
         <div className="container mx-auto px-4">
           <h1 className="font-serif text-3xl">Player Dashboard</h1>
-          <p className="text-gray-300">Welcome back, {user.name}</p>
+          <p className="text-gray-300">Welcome back, {profile?.name || user.email}</p>
         </div>
       </div>
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,7 +50,7 @@ const pastRounds = [
 ];
 
 const AdminDashboard = () => {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('players');
   const [selectedRound, setSelectedRound] = useState('3');
@@ -62,11 +61,11 @@ const AdminDashboard = () => {
     if (!loading) {
       if (!user) {
         navigate('/login');
-      } else if (user.role !== 'admin' && user.role !== 'superadmin') {
+      } else if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
         navigate('/dashboard');
       }
     }
-  }, [user, loading, navigate]);
+  }, [user, profile, loading, navigate]);
 
   const handleResultChange = (matchId: string, result: string) => {
     const updatedMatches = matches.map(match => {
@@ -88,7 +87,7 @@ const AdminDashboard = () => {
   };
 
   // Check if user is loading or not admin
-  if (loading || !user || (user.role !== 'admin' && user.role !== 'superadmin')) {
+  if (loading || !user || (profile?.role !== 'admin' && profile?.role !== 'superadmin')) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -107,10 +106,10 @@ const AdminDashboard = () => {
             <div>
               <h1 className="font-serif text-3xl">Admin Dashboard</h1>
               <p className="text-gray-300">
-                Welcome, {user.name} | <span className="capitalize">{user.role}</span>
+                Welcome, {profile?.name || 'Admin'} | <span className="capitalize">{profile?.role}</span>
               </p>
             </div>
-            {user.role === 'superadmin' && (
+            {profile?.role === 'superadmin' && (
               <Badge className="bg-chess-accent hover:bg-chess-accent/90">
                 Super Admin Access
               </Badge>
@@ -125,9 +124,9 @@ const AdminDashboard = () => {
             <TabsTrigger value="players">Players</TabsTrigger>
             <TabsTrigger value="rounds">Round Management</TabsTrigger>
             <TabsTrigger value="results">Results</TabsTrigger>
-            <TabsTrigger value="settings" disabled={user.role !== 'superadmin'}>
+            <TabsTrigger value="settings" disabled={profile?.role !== 'superadmin'}>
               Settings
-              {user.role !== 'superadmin' && <span className="ml-1 text-xs opacity-70">(Restricted)</span>}
+              {profile?.role !== 'superadmin' && <span className="ml-1 text-xs opacity-70">(Restricted)</span>}
             </TabsTrigger>
           </TabsList>
           
@@ -139,7 +138,7 @@ const AdminDashboard = () => {
                   <CardTitle>Player Management</CardTitle>
                   <CardDescription>View and manage tournament participants</CardDescription>
                 </div>
-                {user.role === 'superadmin' && (
+                {profile?.role === 'superadmin' && (
                   <Button className="bg-chess-dark hover:bg-chess-black">
                     Add New Player
                   </Button>
