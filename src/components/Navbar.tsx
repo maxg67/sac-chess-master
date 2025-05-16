@@ -5,11 +5,17 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  // Determine dashboard route based on user role
+  const getDashboardRoute = () => {
+    if (!profile) return '/dashboard';
+    return profile.role === 'admin' || profile.role === 'superadmin' ? '/admin' : '/dashboard';
   };
 
   return (
@@ -34,7 +40,7 @@ const Navbar = () => {
           {user ? (
             <>
               <Link 
-                to={user.role === 'admin' || user.role === 'superadmin' ? '/admin' : '/dashboard'} 
+                to={getDashboardRoute()} 
                 className="hover:text-chess-accent transition-colors"
               >
                 Dashboard
@@ -83,7 +89,7 @@ const Navbar = () => {
             {user ? (
               <>
                 <Link 
-                  to={user.role === 'admin' || user.role === 'superadmin' ? '/admin' : '/dashboard'} 
+                  to={getDashboardRoute()}
                   className="hover:text-chess-accent transition-colors"
                   onClick={toggleMobileMenu}
                 >

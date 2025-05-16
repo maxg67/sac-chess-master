@@ -37,27 +37,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchUserProfile(session.user.id);
+          // Use setTimeout to prevent potential deadlock
+          setTimeout(() => {
+            fetchUserProfile(session.user.id);
+          }, 0);
         } else {
           setProfile(null);
+          setLoading(false);
         }
       }
     );
 
     // Then check for existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
         await fetchUserProfile(session.user.id);
+      } else {
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
 
     return () => {
@@ -67,6 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -75,12 +82,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) {
         console.error('Error fetching profile:', error);
+        setLoading(false);
         return;
       }
       
+      console.log('Profile data:', data);
       setProfile(data as Profile);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error in fetchUserProfile:', error);
+    } finally {
+      setLoading(false);
     }
   };
 

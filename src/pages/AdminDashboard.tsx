@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,42 +51,13 @@ const pastRounds = [
 ];
 
 const AdminDashboard = () => {
-  const { user, profile, loading } = useAuth();
+  const { profile } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('players');
   const [selectedRound, setSelectedRound] = useState('3');
   const [matches, setMatches] = useState(round3Matches);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   
-  // Check authentication and authorization
-  useEffect(() => {
-    const checkAdminAccess = async () => {
-      if (!loading) {
-        if (!user) {
-          navigate('/login');
-          return;
-        }
-        
-        // If profile is not loaded yet, we need to wait
-        if (!profile) {
-          // Profile might be loading still
-          return;
-        }
-        
-        // Once we have profile, check if user is admin or superadmin
-        if (profile.role !== 'admin' && profile.role !== 'superadmin') {
-          toast.error("You don't have permission to access this page");
-          navigate('/dashboard');
-          return;
-        }
-        
-        // If we get here, user is authenticated and authorized
-        setIsCheckingAuth(false);
-      }
-    };
-    
-    checkAdminAccess();
-  }, [user, profile, loading, navigate]);
+  // No need for additional auth checking since we use ProtectedAdminRoute
 
   const handleResultChange = (matchId: string, result: string) => {
     const updatedMatches = matches.map(match => {
@@ -106,33 +77,6 @@ const AdminDashboard = () => {
   const handleGeneratePairings = () => {
     toast.success("Pairings for Round 4 generated successfully!");
   };
-
-  // Show loading state while checking auth or if basic auth check fails
-  if (loading || isCheckingAuth || !user || !profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-chess-accent mx-auto mb-4"></div>
-          <p>Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Check role again to be extra safe
-  if (profile.role !== 'admin' && profile.role !== 'superadmin') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-lg font-medium mb-2">Access Denied</p>
-          <p className="text-sm text-gray-500 mb-4">You don't have permission to view this page.</p>
-          <Button onClick={() => navigate('/dashboard')}>
-            Go to Player Dashboard
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 chess-pattern pb-12">
