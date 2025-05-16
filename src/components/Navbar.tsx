@@ -1,12 +1,18 @@
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 
 const Navbar = () => {
   const { user, profile, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    // Close mobile menu when location changes (navigation occurs)
+    setMobileMenuOpen(false);
+  }, [location]);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -16,6 +22,12 @@ const Navbar = () => {
   const getDashboardRoute = () => {
     if (!profile) return '/dashboard';
     return profile.role === 'admin' || profile.role === 'superadmin' ? '/admin' : '/dashboard';
+  };
+
+  // Get display text for dashboard link
+  const getDashboardText = () => {
+    if (!profile) return 'Dashboard';
+    return profile.role === 'admin' || profile.role === 'superadmin' ? 'Admin Dashboard' : 'Dashboard';
   };
 
   return (
@@ -43,7 +55,7 @@ const Navbar = () => {
                 to={getDashboardRoute()} 
                 className="hover:text-chess-accent transition-colors"
               >
-                Dashboard
+                {getDashboardText()}
               </Link>
               <Button 
                 variant="outline" 
@@ -82,32 +94,28 @@ const Navbar = () => {
       {mobileMenuOpen && (
         <div className="md:hidden bg-chess-dark py-4 px-4 absolute w-full z-50 animate-fade-in">
           <div className="flex flex-col space-y-4">
-            <Link to="/" className="hover:text-chess-accent transition-colors" onClick={toggleMobileMenu}>Home</Link>
-            <Link to="/leaderboard" className="hover:text-chess-accent transition-colors" onClick={toggleMobileMenu}>Leaderboard</Link>
-            <Link to="/player-lookup" className="hover:text-chess-accent transition-colors" onClick={toggleMobileMenu}>Player Lookup</Link>
+            <Link to="/" className="hover:text-chess-accent transition-colors">Home</Link>
+            <Link to="/leaderboard" className="hover:text-chess-accent transition-colors">Leaderboard</Link>
+            <Link to="/player-lookup" className="hover:text-chess-accent transition-colors">Player Lookup</Link>
             
             {user ? (
               <>
                 <Link 
                   to={getDashboardRoute()}
                   className="hover:text-chess-accent transition-colors"
-                  onClick={toggleMobileMenu}
                 >
-                  Dashboard
+                  {getDashboardText()}
                 </Link>
                 <Button 
                   variant="outline" 
-                  onClick={() => {
-                    logout();
-                    toggleMobileMenu();
-                  }}
+                  onClick={logout}
                   className="border-chess-accent text-chess-accent hover:bg-chess-accent hover:text-white"
                 >
                   Logout
                 </Button>
               </>
             ) : (
-              <Link to="/login" onClick={toggleMobileMenu}>
+              <Link to="/login">
                 <Button variant="outline" className="border-chess-accent text-chess-accent hover:bg-chess-accent hover:text-white">
                   Login
                 </Button>

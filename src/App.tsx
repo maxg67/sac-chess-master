@@ -42,14 +42,15 @@ const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (profile && profile.role !== 'admin' && profile.role !== 'superadmin') {
+    console.log("User role doesn't match admin, redirecting to player dashboard", profile);
     return <Navigate to="/dashboard" replace />;
   }
   
   return <>{children}</>;
 };
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+const ProtectedPlayerRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, profile, loading } = useAuth();
   
   if (loading) {
     return (
@@ -66,6 +67,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace />;
   }
   
+  // If user is an admin, redirect to admin dashboard
+  if (profile && (profile.role === 'admin' || profile.role === 'superadmin')) {
+    console.log("User is admin, redirecting to admin dashboard", profile);
+    return <Navigate to="/admin" replace />;
+  }
+  
   return <>{children}</>;
 };
 
@@ -74,9 +81,9 @@ const AppRoutes = () => (
     <Route path="/" element={<Index />} />
     <Route path="/login" element={<Login />} />
     <Route path="/dashboard" element={
-      <ProtectedRoute>
+      <ProtectedPlayerRoute>
         <PlayerDashboard />
-      </ProtectedRoute>
+      </ProtectedPlayerRoute>
     } />
     <Route path="/leaderboard" element={<Leaderboard />} />
     <Route path="/player-lookup" element={<PlayerLookup />} />
