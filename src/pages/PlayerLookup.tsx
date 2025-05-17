@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -93,11 +94,12 @@ const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
     // Extract profile name with proper null safety
     let profileName = 'Unknown Player';
     if (playerData.profiles) {
-      const profilesData = playerData.profiles;
-      if (profilesData && typeof profilesData === 'object') {
-        // Now check if the object has a name property that's a string
-        if ('name' in profilesData && typeof profilesData['name'] === 'string') {
-          profileName = profilesData['name'];
+      // Cast profilesData as any to work with it safely
+      const profilesData = playerData.profiles as any;
+      if (profilesData && typeof profilesData === 'object' && profilesData !== null) {
+        // Check if the object has a name property that's a string
+        if ('name' in profilesData && typeof profilesData.name === 'string') {
+          profileName = profilesData.name;
         }
       }
     }
@@ -107,11 +109,12 @@ const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
       // Extract opponent name with proper null safety
       let opponentName = 'Unknown Opponent';
       if (matchData.opponent.profiles) {
-        const opponentProfilesData = matchData.opponent.profiles;
-        if (opponentProfilesData && typeof opponentProfilesData === 'object') {
-          // Now check if the object has a name property that's a string
-          if ('name' in opponentProfilesData && typeof opponentProfilesData['name'] === 'string') {
-            opponentName = opponentProfilesData['name'];
+        // Cast opponentProfilesData as any to work with it safely
+        const opponentProfilesData = matchData.opponent.profiles as any;
+        if (opponentProfilesData && typeof opponentProfilesData === 'object' && opponentProfilesData !== null) {
+          // Check if the object has a name property that's a string
+          if ('name' in opponentProfilesData && typeof opponentProfilesData.name === 'string') {
+            opponentName = opponentProfilesData.name;
           }
         }
       }
@@ -165,11 +168,12 @@ const fetchAllPlayers = async (): Promise<PlayerData[]> => {
       // Extract profile name with proper null safety
       let profileName = 'Unknown Player';
       if (player.profiles) {
-        const profilesData = player.profiles;
-        if (profilesData && typeof profilesData === 'object') {
-          // Now check if the object has a name property that's a string
-          if ('name' in profilesData && typeof profilesData['name'] === 'string') {
-            profileName = profilesData['name'];
+        // Cast profilesData as any to work with it safely
+        const profilesData = player.profiles as any;
+        if (profilesData && typeof profilesData === 'object' && profilesData !== null) {
+          // Check if the object has a name property that's a string
+          if ('name' in profilesData && typeof profilesData.name === 'string') {
+            profileName = profilesData.name;
           }
         }
       }
