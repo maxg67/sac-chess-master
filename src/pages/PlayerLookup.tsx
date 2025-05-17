@@ -9,7 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-interface PlayerProfile {
+// Define TypeScript interfaces for data structures
+interface Profile {
   name: string;
 }
 
@@ -36,7 +37,10 @@ const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
     // First get player information
     const { data: playerData, error: playerError } = await supabase
       .from('players')
-      .select('*, profiles:user_id(*)')
+      .select(`
+        *,
+        profiles:user_id(*)
+      `)
       .eq('id', id)
       .maybeSingle();
 
@@ -68,7 +72,7 @@ const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
         *,
         opponent:players!player2_id(
           id, 
-          profiles:user_id(name)
+          profiles:user_id(*)
         ),
         round:round_id(
           round_number
@@ -87,13 +91,23 @@ const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
     // Assemble the data
     const scoreInfo = scoreData || { wins: 0, losses: 0, draws: 0, total_score: 0 };
     
-    // Safely access the profile name with proper type checking
-    const profileName = playerData.profiles?.name || 'Unknown Player';
+    // Type guard for profiles to ensure it's not a PostgrestError
+    let profileName = 'Unknown Player';
+    if (playerData.profiles && typeof playerData.profiles === 'object' && 'name' in playerData.profiles) {
+      profileName = playerData.profiles.name || 'Unknown Player';
+    }
     
     let upcomingMatch;
     if (matchData && matchData.opponent) {
-      // Safely extract opponent name with proper type checking
-      const opponentName = matchData.opponent.profiles?.name || 'Unknown Opponent';
+      // Type guard for opponent's profile
+      let opponentName = 'Unknown Opponent';
+      if (
+        matchData.opponent.profiles && 
+        typeof matchData.opponent.profiles === 'object' && 
+        'name' in matchData.opponent.profiles
+      ) {
+        opponentName = matchData.opponent.profiles.name || 'Unknown Opponent';
+      }
       
       upcomingMatch = {
         opponent: opponentName,
@@ -126,7 +140,11 @@ const fetchAllPlayers = async (): Promise<PlayerData[]> => {
   try {
     const { data, error } = await supabase
       .from('players')
-      .select('*, profiles:user_id(name), scores:scores(wins, losses, draws, total_score)')
+      .select(`
+        *, 
+        profiles:user_id(*), 
+        scores:scores(wins, losses, draws, total_score)
+      `)
       .limit(20);
 
     if (error) {
@@ -136,8 +154,12 @@ const fetchAllPlayers = async (): Promise<PlayerData[]> => {
 
     return (data || []).map((player, index) => {
       const scoreInfo = player.scores?.[0] || { wins: 0, losses: 0, draws: 0, total_score: 0 };
-      // Safely access the profile name with proper null checking
-      const profileName = player.profiles?.name || 'Unknown Player';
+      
+      // Type guard for profiles to ensure it's not a PostgrestError
+      let profileName = 'Unknown Player';
+      if (player.profiles && typeof player.profiles === 'object' && 'name' in player.profiles) {
+        profileName = player.profiles.name || 'Unknown Player';
+      }
       
       return {
         id: player.id,
