@@ -91,32 +91,34 @@ const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
     // Assemble the data
     const scoreInfo = scoreData || { wins: 0, losses: 0, draws: 0, total_score: 0 };
     
-    // Type guard for profiles to ensure it's not null and has name property
+    // Extract profile name with proper null safety
     let profileName = 'Unknown Player';
-    const profilesData = playerData.profiles;
-    if (
-      profilesData && 
-      typeof profilesData === 'object' && 
-      profilesData !== null && 
-      'name' in profilesData &&
-      typeof profilesData.name === 'string'
-    ) {
-      profileName = profilesData.name;
+    if (playerData.profiles) {
+      const profilesData = playerData.profiles;
+      if (
+        typeof profilesData === 'object' && 
+        profilesData !== null && 
+        'name' in profilesData &&
+        typeof profilesData.name === 'string'
+      ) {
+        profileName = profilesData.name;
+      }
     }
     
     let upcomingMatch;
     if (matchData && matchData.opponent) {
-      // Type guard for opponent's profile
+      // Extract opponent name with proper null safety
       let opponentName = 'Unknown Opponent';
-      const opponentProfilesData = matchData.opponent.profiles;
-      if (
-        opponentProfilesData && 
-        typeof opponentProfilesData === 'object' && 
-        opponentProfilesData !== null &&
-        'name' in opponentProfilesData &&
-        typeof opponentProfilesData.name === 'string'
-      ) {
-        opponentName = opponentProfilesData.name;
+      if (matchData.opponent.profiles) {
+        const opponentProfilesData = matchData.opponent.profiles;
+        if (
+          typeof opponentProfilesData === 'object' && 
+          opponentProfilesData !== null &&
+          'name' in opponentProfilesData &&
+          typeof opponentProfilesData.name === 'string'
+        ) {
+          opponentName = opponentProfilesData.name;
+        }
       }
       
       upcomingMatch = {
@@ -165,17 +167,18 @@ const fetchAllPlayers = async (): Promise<PlayerData[]> => {
     return (data || []).map((player, index) => {
       const scoreInfo = player.scores?.[0] || { wins: 0, losses: 0, draws: 0, total_score: 0 };
       
-      // Type guard for profiles to ensure it's not null and has name property
+      // Extract profile name with proper null safety
       let profileName = 'Unknown Player';
-      const profilesData = player.profiles;
-      if (
-        profilesData && 
-        typeof profilesData === 'object' && 
-        profilesData !== null && 
-        'name' in profilesData &&
-        typeof profilesData.name === 'string'
-      ) {
-        profileName = profilesData.name;
+      if (player.profiles) {
+        const profilesData = player.profiles;
+        if (
+          typeof profilesData === 'object' && 
+          profilesData !== null && 
+          'name' in profilesData &&
+          typeof profilesData.name === 'string'
+        ) {
+          profileName = profilesData.name;
+        }
       }
       
       return {
