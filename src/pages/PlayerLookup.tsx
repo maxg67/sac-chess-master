@@ -37,7 +37,8 @@ const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
       .maybeSingle();
 
     if (playerError) {
-      throw new playerError;
+      console.error('Player fetch error:', playerError);
+      throw playerError;
     }
 
     if (!playerData) {
@@ -52,6 +53,7 @@ const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
       .maybeSingle();
 
     if (scoreError) {
+      console.error('Score fetch error:', scoreError);
       throw scoreError;
     }
 
@@ -118,7 +120,10 @@ const fetchAllPlayers = async (): Promise<PlayerData[]> => {
       .select('*, profiles:user_id(name), scores:scores(wins, losses, draws, total_score)')
       .limit(20);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching players:', error);
+      throw error;
+    }
 
     return (data || []).map((player, index) => {
       const scoreInfo = player.scores?.[0] || { wins: 0, losses: 0, draws: 0, total_score: 0 };
