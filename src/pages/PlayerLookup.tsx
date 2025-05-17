@@ -9,6 +9,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
+interface PlayerProfile {
+  name: string;
+}
+
 interface PlayerData {
   id: string;
   name: string;
@@ -32,7 +36,7 @@ const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
     // First get player information
     const { data: playerData, error: playerError } = await supabase
       .from('players')
-      .select('*, profiles:user_id(name)')
+      .select('*, profiles:user_id(*)')
       .eq('id', id)
       .maybeSingle();
 
@@ -82,12 +86,17 @@ const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
 
     // Assemble the data
     const scoreInfo = scoreData || { wins: 0, losses: 0, draws: 0, total_score: 0 };
+    
+    // Safely access the profile name with proper type checking
     const profileName = playerData.profiles?.name || 'Unknown Player';
     
     let upcomingMatch;
     if (matchData && matchData.opponent) {
+      // Safely extract opponent name with proper type checking
+      const opponentName = matchData.opponent.profiles?.name || 'Unknown Opponent';
+      
       upcomingMatch = {
-        opponent: matchData.opponent.profiles?.name || 'Unknown Opponent',
+        opponent: opponentName,
         round: matchData.round?.round_number || 0,
         board: matchData.board_number || 0,
         time: 'TBD', // This would come from the round schedule
@@ -127,9 +136,12 @@ const fetchAllPlayers = async (): Promise<PlayerData[]> => {
 
     return (data || []).map((player, index) => {
       const scoreInfo = player.scores?.[0] || { wins: 0, losses: 0, draws: 0, total_score: 0 };
+      // Safely access the profile name with proper null checking
+      const profileName = player.profiles?.name || 'Unknown Player';
+      
       return {
         id: player.id,
-        name: player.profiles?.name || 'Unknown Player',
+        name: profileName,
         board_number: player.board_number,
         score: scoreInfo.total_score || 0,
         wins: scoreInfo.wins || 0, 
