@@ -91,9 +91,9 @@ const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
     // Assemble the data
     const scoreInfo = scoreData || { wins: 0, losses: 0, draws: 0, total_score: 0 };
     
-    // Type guard for profiles to ensure it's not a PostgrestError
+    // Type guard for profiles to ensure it's not null and has name property
     let profileName = 'Unknown Player';
-    if (playerData.profiles && typeof playerData.profiles === 'object' && 'name' in playerData.profiles) {
+    if (playerData?.profiles && typeof playerData.profiles === 'object' && playerData.profiles !== null && 'name' in playerData.profiles) {
       profileName = playerData.profiles.name || 'Unknown Player';
     }
     
@@ -102,8 +102,9 @@ const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
       // Type guard for opponent's profile
       let opponentName = 'Unknown Opponent';
       if (
-        matchData.opponent.profiles && 
+        matchData.opponent?.profiles && 
         typeof matchData.opponent.profiles === 'object' && 
+        matchData.opponent.profiles !== null &&
         'name' in matchData.opponent.profiles
       ) {
         opponentName = matchData.opponent.profiles.name || 'Unknown Opponent';
@@ -155,9 +156,9 @@ const fetchAllPlayers = async (): Promise<PlayerData[]> => {
     return (data || []).map((player, index) => {
       const scoreInfo = player.scores?.[0] || { wins: 0, losses: 0, draws: 0, total_score: 0 };
       
-      // Type guard for profiles to ensure it's not a PostgrestError
+      // Type guard for profiles to ensure it's not null and has name property
       let profileName = 'Unknown Player';
-      if (player.profiles && typeof player.profiles === 'object' && 'name' in player.profiles) {
+      if (player?.profiles && typeof player.profiles === 'object' && player.profiles !== null && 'name' in player.profiles) {
         profileName = player.profiles.name || 'Unknown Player';
       }
       
