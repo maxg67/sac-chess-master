@@ -76,6 +76,7 @@ export type Database = {
       }
       players: {
         Row: {
+          board_number: number | null
           created_at: string
           id: string
           initial_rating: number | null
@@ -85,6 +86,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          board_number?: number | null
           created_at?: string
           id?: string
           initial_rating?: number | null
@@ -94,6 +96,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          board_number?: number | null
           created_at?: string
           id?: string
           initial_rating?: number | null
@@ -230,6 +233,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      system_settings: {
+        Row: {
+          created_at: string
+          id: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       tournaments: {
         Row: {

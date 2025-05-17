@@ -1,76 +1,173 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import PlayerCard from '@/components/PlayerCard';
 import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
-// Sample players data
-const allPlayers = [
-  { 
-    id: 'p1', 
-    name: 'Magnus Johnson', 
-    score: 2, 
-    wins: 2, 
-    losses: 0, 
-    draws: 0, 
-    rank: 1,
-    upcomingMatch: {
-      opponent: 'John Player',
-      round: 3,
-      board: 2,
-      time: '10:00 AM, June 12, 2025',
-      location: 'Main Hall, Table 2'
+interface PlayerData {
+  id: string;
+  name: string;
+  board_number: number | null;
+  score: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  rank?: number;
+  upcomingMatch?: {
+    opponent: string;
+    round: number;
+    board: number;
+    time: string;
+    location: string;
+  };
+}
+
+const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
+  try {
+    // First get player information
+    const { data: playerData, error: playerError } = await supabase
+      .from('players')
+      .select('*, profiles:user_id(name)')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (playerError) {
+      throw new playerError;
     }
-  },
-  { 
-    id: 'p2', 
-    name: 'Anna Karlson', 
-    score: 1.5, 
-    wins: 1, 
-    losses: 0, 
-    draws: 1, 
-    rank: 2 
-  },
-  { 
-    id: 'p3', 
-    name: 'Robert Fischer Jr.', 
-    score: 1.5, 
-    wins: 1, 
-    losses: 0, 
-    draws: 1, 
-    rank: 3 
-  },
-  { 
-    id: 'p4', 
-    name: 'John Player', 
-    score: 1.5, 
-    wins: 1, 
-    losses: 0, 
-    draws: 1, 
-    rank: 4,
-    upcomingMatch: {
-      opponent: 'Magnus Johnson',
-      round: 3,
-      board: 2,
-      time: '10:00 AM, June 12, 2025',
-      location: 'Main Hall, Table 2'
+
+    if (!playerData) {
+      return null;
     }
-  },
-  // Add more players as needed
-];
+
+    // Then get score information
+    const { data: scoreData, error: scoreError } = await supabase
+      .from('scores')
+      .select('*')
+      .eq('player_id', id)
+      .maybeSingle();
+
+    if (scoreError) {
+      throw scoreError;
+    }
+
+    // Then get upcoming match information if available
+    const { data: matchData, error: matchError } = await supabase
+      .from('matches')
+      .select(`
+        *,
+        opponent:players!player2_id(
+          id, 
+          profiles:user_id(name)
+        ),
+        round:round_id(
+          round_number
+        )
+      `)
+      .eq('player1_id', id)
+      .eq('result', null)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (matchError) {
+      console.error('Match fetch error:', matchError);
+    }
+
+    // Assemble the data
+    const scoreInfo = scoreData || { wins: 0, losses: 0, draws: 0, total_score: 0 };
+    const profileName = playerData.profiles?.name || 'Unknown Player';
+    
+    let upcomingMatch;
+    if (matchData && matchData.opponent) {
+      upcomingMatch = {
+        opponent: matchData.opponent.profiles?.name || 'Unknown Opponent',
+        round: matchData.round?.round_number || 0,
+        board: matchData.board_number || 0,
+        time: 'TBD', // This would come from the round schedule
+        location: 'TBD' // This would come from tournament or round info
+      };
+    }
+
+    return {
+      id: playerData.id,
+      name: profileName,
+      board_number: playerData.board_number,
+      score: scoreInfo.total_score || 0,
+      wins: scoreInfo.wins || 0,
+      losses: scoreInfo.losses || 0,
+      draws: scoreInfo.draws || 0,
+      rank: 0, // This would be calculated from scores table
+      upcomingMatch
+    };
+  } catch (error) {
+    console.error('Error fetching player details:', error);
+    toast.error('Failed to load player details');
+    return null;
+  }
+};
+
+const fetchAllPlayers = async (): Promise<PlayerData[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('players')
+      .select('*, profiles:user_id(name), scores:scores(wins, losses, draws, total_score)')
+      .limit(20);
+
+    if (error) throw error;
+
+    return (data || []).map((player, index) => {
+      const scoreInfo = player.scores?.[0] || { wins: 0, losses: 0, draws: 0, total_score: 0 };
+      return {
+        id: player.id,
+        name: player.profiles?.name || 'Unknown Player',
+        board_number: player.board_number,
+        score: scoreInfo.total_score || 0,
+        wins: scoreInfo.wins || 0, 
+        losses: scoreInfo.losses || 0,
+        draws: scoreInfo.draws || 0,
+        rank: index + 1 // Simple ranking by order in the list
+      };
+    });
+  } catch (error) {
+    console.error('Error fetching all players:', error);
+    toast.error('Failed to load players');
+    return [];
+  }
+};
 
 const PlayerLookup = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<typeof allPlayers>([]);
+  const [searchResults, setSearchResults] = useState<PlayerData[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const { playerId } = useParams();
   const navigate = useNavigate();
 
-  // If player ID is provided in URL, find that player
-  const playerFromUrl = playerId ? allPlayers.find(p => p.id === playerId) : undefined;
-  
+  // Fetch single player if ID provided
+  const { 
+    data: playerData,
+    isLoading: playerLoading, 
+    error: playerError 
+  } = useQuery({
+    queryKey: ['player', playerId],
+    queryFn: () => playerId ? fetchPlayer(playerId) : null,
+    enabled: !!playerId
+  });
+
+  // Fetch all players for search
+  const { 
+    data: allPlayers = [],
+    isLoading: playersLoading
+  } = useQuery({
+    queryKey: ['players'],
+    queryFn: fetchAllPlayers,
+    enabled: !playerId // Only fetch all players when not looking at a specific player
+  });
+
   const handleSearch = () => {
     if (!searchTerm.trim()) {
       setSearchResults([]);
@@ -93,6 +190,45 @@ const PlayerLookup = () => {
     }
   };
 
+  if (playerLoading || playersLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 chess-pattern pb-12">
+        <div className="bg-chess-dark text-white py-8">
+          <div className="container mx-auto px-4">
+            <h1 className="font-serif text-3xl">Player Lookup</h1>
+            <p className="text-gray-300">Loading player data...</p>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 mt-8 flex justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-chess-accent"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (playerError) {
+    return (
+      <div className="min-h-screen bg-gray-50 chess-pattern pb-12">
+        <div className="bg-chess-dark text-white py-8">
+          <div className="container mx-auto px-4">
+            <h1 className="font-serif text-3xl">Player Lookup</h1>
+            <p className="text-gray-300">Error loading player information</p>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 mt-8">
+          <Card>
+            <CardContent className="p-6">
+              <p>There was an error loading the player information. Please try again later.</p>
+              <Button onClick={() => navigate('/player-lookup')} className="mt-4">
+                Return to lookup
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 chess-pattern pb-12">
       <div className="bg-chess-dark text-white py-8">
@@ -103,7 +239,7 @@ const PlayerLookup = () => {
       </div>
 
       <div className="container mx-auto px-4 mt-8">
-        {playerFromUrl ? (
+        {playerId && playerData ? (
           <div className="animate-fade-in">
             <Button 
               variant="outline" 
@@ -113,7 +249,10 @@ const PlayerLookup = () => {
               ← Back to Search
             </Button>
             <div className="max-w-md mx-auto">
-              <PlayerCard {...playerFromUrl} />
+              <PlayerCard 
+                {...playerData} 
+                boardNumber={playerData.board_number || undefined}
+              />
             </div>
           </div>
         ) : (
@@ -154,6 +293,11 @@ const PlayerLookup = () => {
                                 <span className="text-sm text-muted-foreground">ID: {player.id}</span>
                                 <span className="text-sm">Rank: #{player.rank}</span>
                               </div>
+                              {player.board_number && (
+                                <div className="mt-2">
+                                  <span className="text-sm font-medium">Board #{player.board_number}</span>
+                                </div>
+                              )}
                               <div className="mt-3 pt-3 border-t flex justify-between">
                                 <span>Score: {player.score}</span>
                                 <span className="text-sm">

@@ -15,6 +15,7 @@ import PlayerDashboard from "./pages/PlayerDashboard";
 import Leaderboard from "./pages/Leaderboard";
 import PlayerLookup from "./pages/PlayerLookup";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminSettings from "./pages/AdminSettings";
 
 // Components
 import Navbar from "./components/Navbar";
@@ -62,6 +63,28 @@ const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Protected superadmin route component
+const ProtectedSuperadminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, profile, loading } = useAuth();
+  
+  if (loading) {
+    return <LoadingComponent />;
+  }
+  
+  // Check if not authenticated
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // Check if profile is loaded and role is superadmin
+  if (profile && profile.role !== 'superadmin') {
+    console.log("User role isn't superadmin, redirecting to admin dashboard", profile);
+    return <Navigate to="/admin" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 const ProtectedPlayerRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, profile, loading } = useAuth();
   
@@ -99,6 +122,11 @@ const AppRoutes = () => (
       <ProtectedAdminRoute>
         <AdminDashboard />
       </ProtectedAdminRoute>
+    } />
+    <Route path="/admin/settings" element={
+      <ProtectedSuperadminRoute>
+        <AdminSettings />
+      </ProtectedSuperadminRoute>
     } />
     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
     <Route path="*" element={<NotFound />} />

@@ -11,6 +11,7 @@ interface PlayerCardProps {
   losses: number;
   draws: number;
   rank?: number;
+  boardNumber?: number;
   upcomingMatch?: {
     opponent: string;
     round: number;
@@ -28,6 +29,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   losses,
   draws,
   rank,
+  boardNumber,
   upcomingMatch
 }) => {
   return (
@@ -38,11 +40,18 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
             <h3 className="font-serif font-bold text-xl">{name}</h3>
             <span className="text-xs text-muted-foreground">ID: {id}</span>
           </div>
-          {rank && (
-            <Badge variant="outline" className="border-chess-accent text-chess-black">
-              Rank #{rank}
-            </Badge>
-          )}
+          <div className="flex flex-col gap-1 items-end">
+            {rank && (
+              <Badge variant="outline" className="border-chess-accent text-chess-black">
+                Rank #{rank}
+              </Badge>
+            )}
+            {boardNumber !== undefined && (
+              <Badge variant="secondary" className="text-chess-black">
+                Board #{boardNumber}
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
       
