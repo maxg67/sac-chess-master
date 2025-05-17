@@ -93,21 +93,30 @@ const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
     
     // Type guard for profiles to ensure it's not null and has name property
     let profileName = 'Unknown Player';
-    if (playerData?.profiles && typeof playerData.profiles === 'object' && playerData.profiles !== null && 'name' in playerData.profiles) {
-      profileName = playerData.profiles.name || 'Unknown Player';
+    const profilesData = playerData.profiles;
+    if (
+      profilesData && 
+      typeof profilesData === 'object' && 
+      profilesData !== null && 
+      'name' in profilesData &&
+      typeof profilesData.name === 'string'
+    ) {
+      profileName = profilesData.name;
     }
     
     let upcomingMatch;
     if (matchData && matchData.opponent) {
       // Type guard for opponent's profile
       let opponentName = 'Unknown Opponent';
+      const opponentProfilesData = matchData.opponent.profiles;
       if (
-        matchData.opponent?.profiles && 
-        typeof matchData.opponent.profiles === 'object' && 
-        matchData.opponent.profiles !== null &&
-        'name' in matchData.opponent.profiles
+        opponentProfilesData && 
+        typeof opponentProfilesData === 'object' && 
+        opponentProfilesData !== null &&
+        'name' in opponentProfilesData &&
+        typeof opponentProfilesData.name === 'string'
       ) {
-        opponentName = matchData.opponent.profiles.name || 'Unknown Opponent';
+        opponentName = opponentProfilesData.name;
       }
       
       upcomingMatch = {
@@ -158,8 +167,15 @@ const fetchAllPlayers = async (): Promise<PlayerData[]> => {
       
       // Type guard for profiles to ensure it's not null and has name property
       let profileName = 'Unknown Player';
-      if (player?.profiles && typeof player.profiles === 'object' && player.profiles !== null && 'name' in player.profiles) {
-        profileName = player.profiles.name || 'Unknown Player';
+      const profilesData = player.profiles;
+      if (
+        profilesData && 
+        typeof profilesData === 'object' && 
+        profilesData !== null && 
+        'name' in profilesData &&
+        typeof profilesData.name === 'string'
+      ) {
+        profileName = profilesData.name;
       }
       
       return {
