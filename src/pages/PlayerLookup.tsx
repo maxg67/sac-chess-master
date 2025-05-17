@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -95,13 +94,11 @@ const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
     let profileName = 'Unknown Player';
     if (playerData.profiles) {
       const profilesData = playerData.profiles;
-      if (
-        typeof profilesData === 'object' && 
-        profilesData !== null && 
-        'name' in profilesData &&
-        typeof profilesData.name === 'string'
-      ) {
-        profileName = profilesData.name;
+      if (profilesData && typeof profilesData === 'object') {
+        // Now check if the object has a name property that's a string
+        if ('name' in profilesData && typeof profilesData['name'] === 'string') {
+          profileName = profilesData['name'];
+        }
       }
     }
     
@@ -111,13 +108,11 @@ const fetchPlayer = async (id: string): Promise<PlayerData | null> => {
       let opponentName = 'Unknown Opponent';
       if (matchData.opponent.profiles) {
         const opponentProfilesData = matchData.opponent.profiles;
-        if (
-          typeof opponentProfilesData === 'object' && 
-          opponentProfilesData !== null &&
-          'name' in opponentProfilesData &&
-          typeof opponentProfilesData.name === 'string'
-        ) {
-          opponentName = opponentProfilesData.name;
+        if (opponentProfilesData && typeof opponentProfilesData === 'object') {
+          // Now check if the object has a name property that's a string
+          if ('name' in opponentProfilesData && typeof opponentProfilesData['name'] === 'string') {
+            opponentName = opponentProfilesData['name'];
+          }
         }
       }
       
@@ -171,13 +166,11 @@ const fetchAllPlayers = async (): Promise<PlayerData[]> => {
       let profileName = 'Unknown Player';
       if (player.profiles) {
         const profilesData = player.profiles;
-        if (
-          typeof profilesData === 'object' && 
-          profilesData !== null && 
-          'name' in profilesData &&
-          typeof profilesData.name === 'string'
-        ) {
-          profileName = profilesData.name;
+        if (profilesData && typeof profilesData === 'object') {
+          // Now check if the object has a name property that's a string
+          if ('name' in profilesData && typeof profilesData['name'] === 'string') {
+            profileName = profilesData['name'];
+          }
         }
       }
       
